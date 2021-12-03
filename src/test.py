@@ -1,20 +1,16 @@
-from xoroshiro import Xoroshiro
+from xoroshiro import XOROSHIRO
 import calc
 
 def main():
+    prng = XOROSHIRO(0x123456789ABCDEF,0xFEDCBA9876543210)
 
-    prng = Xoroshiro()
-
-    s0, s1 = prng.get_state()
-    expected = (s0<<64)|s1
-    print(f"expected:{hex(expected)}")
+    s0, s1 = prng.seed
+    print(f"expected: s0 {s0:016X} s1 {s1:016X}")
     
     observed = [prng.next()%2 for _ in range(128)]
-    s = calc.getS()
-    state_lst = calc.gauss_jordan(s, observed)
-    state = calc.list2bitvec(state_lst)
+    s0, s1 = calc.motions2state(observed)
 
-    print(f"result:{hex(state)}")
+    print(f"result: s0 {s0:016X} s1 {s1:016X}")
 
 if __name__ == "__main__":
     main()

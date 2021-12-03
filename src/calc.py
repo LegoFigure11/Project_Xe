@@ -1,31 +1,26 @@
-import sys
 import numpy as np
 from functools import reduce
-import time
 
-def readints():
-    return tuple(map(int,sys.stdin.readline().split()))
-
-def getRotl(n,size=64):
+def get_rotl(n,size=64):
     rotl = np.identity(64,dtype="uint8")
     return np.roll(rotl,-n,axis=0)
 
-def getShift(n,size=64):
+def get_shift(n,size=64):
     return np.eye(size,k=n,dtype="uint8")
 
-def getTrans():
-    tl = getRotl(24)^np.identity(64,dtype="uint8")^getShift(16)
-    tr = np.identity(64,dtype="uint8")^getShift(16)
-    bl = getRotl(37)
-    br = getRotl(37)
+def get_trans():
+    tl = get_rotl(24)^np.identity(64,dtype="uint8")^get_shift(16)
+    tr = np.identity(64,dtype="uint8")^get_shift(16)
+    bl = get_rotl(37)
+    br = get_rotl(37)
 
     trans = np.block([[tl,tr],[bl,br]])
     
     return trans
 
-def getS():
+def get_mat():
     t = np.identity(128,dtype="uint8")
-    t_ = getTrans()
+    t_ = get_trans()
 
     s = np.zeros((128,128),"uint8")
     for i in range(128):
@@ -75,4 +70,10 @@ def gauss_jordan(mat,observed):
 
     return res
     
-    
+def motions2state(motions, mat=get_mat()):
+    state = list2bitvec(gauss_jordan(mat,motions))
+    return state >> 64, state & 0xFFFFFFFFFFFFFFFF
+
+def motions2seed(motions, mat=get_mat()):
+    state = list2bitvec(gauss_jordan(mat,motions))
+    return (state >> 64) | ((state & 0xFFFFFFFFFFFFFFFF) << 64)
